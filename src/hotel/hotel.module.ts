@@ -1,7 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { HotelService } from './hotel.service';
 import { HotelController } from './hotel.controller';
-import { LogMiddleware } from '../logs/logs.middleware';
+import { LogMiddleware } from '../middleware/logs.middleware';
 
 @Module({
   controllers: [HotelController],

@@ -21,8 +21,7 @@ import { TransformInterceptor } from './interceptor/transform.interceptor';
       port: 3306,
       username: 'root',
       password: 'root',
-
-      database: 'nesttestmigrate',
+      database: 'nesttest',
       entities: [User, Owner, Hotel],
       synchronize: false,
     }),

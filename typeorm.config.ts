@@ -9,7 +9,7 @@ export default new DataSource({
   port: 3306,
   username: 'root',
   password: 'root',
-  database: 'nesttestmigrate',
+  database: 'nesttest',
   migrations: ['migrations/*.ts'],
   entities: [User, Owner, Hotel],
 });

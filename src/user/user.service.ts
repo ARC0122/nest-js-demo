@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,57 +13,92 @@ import { Repository } from 'typeorm';
 export class UserService {
   constructor(@InjectRepository(User) private userRepo: Repository<User>) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const queryRunner = this.userRepo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const newUser = await this.userRepo.create(createUserDto);
-      return this.userRepo.save(newUser);
+      const newUser = this.userRepo.create(createUserDto);
+      const savedUser = await queryRunner.manager.save(User, newUser);
+
+      await queryRunner.commitTransaction();
+      return savedUser;
     } catch (error) {
-      console.log(error);
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException('Error creating user: ' + error.message);
+    } finally {
+      await queryRunner.release();
     }
   }
 
-  async findAll() {
-    const user = await this.userRepo.find();
-    return user;
-  }
-
-  async findOne(id: number) {
-    const user = await this.userRepo.findOneBy({ UserID: id });
-    if (!user) throw new NotFoundException('User Not found ');
-
-    return user;
-  }
-
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async findAll(): Promise<User[]> {
     try {
-      const updateResult = await this.userRepo.update(
+      return await this.userRepo.find();
+    } catch (error) {
+      throw new BadRequestException('Error fetching users: ' + error.message);
+    }
+  }
+
+  async findOne(id: number): Promise<User> {
+    try {
+      const user = await this.userRepo.findOneBy({ UserID: id });
+      if (!user) throw new NotFoundException('User not found');
+      return user;
+    } catch (error) {
+      throw new BadRequestException('Error fetching user: ' + error.message);
+    }
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const queryRunner = this.userRepo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const updateResult = await queryRunner.manager.update(
+        User,
         { UserID: id },
         updateUserDto,
       );
 
       if (updateResult.affected === 0) {
-        throw new Error('User not found');
+        throw new NotFoundException('User not found');
       }
 
-      return await this.userRepo.findOne({ where: { UserID: id } });
+      const updatedUser = await queryRunner.manager.findOne(User, {
+        where: { UserID: id },
+      });
+      await queryRunner.commitTransaction();
+
+      return updatedUser;
     } catch (error) {
-      console.log(error);
-      throw new Error('Error updating user');
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException('Error updating user: ' + error.message);
+    } finally {
+      await queryRunner.release();
     }
   }
 
-  async delete(id: number) {
+  async delete(id: number): Promise<{ message: string }> {
+    const queryRunner = this.userRepo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const deleteResult = await this.userRepo.softDelete(id);
+      const deleteResult = await queryRunner.manager.softDelete(User, id);
 
       if (deleteResult.affected === 0) {
-        throw new Error('User not found');
+        throw new NotFoundException('User not found');
       }
 
+      await queryRunner.commitTransaction();
       return { message: 'User deleted successfully' };
     } catch (error) {
-      console.log(error);
-      throw new Error('Error deleting user');
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException('Error deleting user: ' + error.message);
+    } finally {
+      await queryRunner.release();
     }
   }
 }

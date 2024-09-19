@@ -18,73 +18,116 @@ export class HotelService {
   ) {}
 
   async create(createHotelDto: CreateHotelDto): Promise<Hotel> {
+    const queryRunner = this.hotelRepo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const newHotel = new Hotel();
-
-      Object.assign(newHotel, createHotelDto);
-
       if (createHotelDto.OwnerID) {
-        const owner = await this.ownerService.findOne(createHotelDto.OwnerID);
-
-        if (!owner) {
-          throw new BadRequestException('Owner not found');
-        }
-
-        newHotel.owner = owner;
+        await this.ownerService.findOne(createHotelDto.OwnerID);
       }
 
-      return await this.hotelRepo.save(newHotel);
+      const newHotel = this.hotelRepo.create(createHotelDto);
+      const savedHotel = await queryRunner.manager.save(newHotel);
+
+      await queryRunner.commitTransaction();
+      return savedHotel;
     } catch (error) {
-      console.error(error);
-      throw error;
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException('Error creating hotel: ' + error.message);
+    } finally {
+      await queryRunner.release();
     }
   }
 
   async findAll() {
-    const user = await this.hotelRepo.find({ relations: ['owner'] });
-    return user;
+    try {
+      return await this.hotelRepo.find({ relations: ['owner'] });
+    } catch (error) {
+      throw new BadRequestException('Error fetching hotels: ' + error.message);
+    }
   }
 
   async findOne(id: number): Promise<Hotel> {
-    const user = await this.hotelRepo.findOne({
-      where: { HotelID: id },
-      relations: ['owner'],
-    });
-    if (!user) throw new NotFoundException('Hotel Not found ');
-
-    return user;
+    try {
+      const hotel = await this.hotelRepo.findOne({
+        where: { HotelID: id },
+        relations: ['owner'],
+      });
+      if (!hotel) {
+        throw new NotFoundException('Hotel not found');
+      }
+      return hotel;
+    } catch (error) {
+      throw new BadRequestException('Error fetching hotel: ' + error.message);
+    }
   }
 
-  async update(id: number, updateHotelDto: UpdateHotelDto) {
+  async update(id: number, updateHotelDto: UpdateHotelDto): Promise<Hotel> {
+    const queryRunner = this.hotelRepo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const updateResult = await this.hotelRepo.update(
+      const hotel = await queryRunner.manager.findOne(Hotel, {
+        where: { HotelID: id },
+      });
+      if (!hotel) {
+        throw new NotFoundException('Hotel not found');
+      }
+
+      if (updateHotelDto.OwnerID) {
+        const owner = await this.ownerService.findOne(updateHotelDto.OwnerID);
+
+        if (!owner) {
+          throw new BadRequestException('Owner not found');
+        }
+      }
+
+      const updateResult = await queryRunner.manager.update(
+        Hotel,
         { HotelID: id },
         updateHotelDto,
       );
 
       if (updateResult.affected === 0) {
-        throw new Error('User not found');
+        throw new NotFoundException('Hotel not found for update');
       }
 
-      return await this.hotelRepo.findOne({ where: { HotelID: id } });
+      const updatedHotel = await queryRunner.manager.findOne(Hotel, {
+        where: { HotelID: id },
+        relations: ['owner'],
+      });
+
+      await queryRunner.commitTransaction();
+      return updatedHotel;
     } catch (error) {
-      console.log(error);
-      throw new Error('Error updating user');
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException('Error updating hotel: ' + error.message);
+    } finally {
+      await queryRunner.release();
     }
   }
 
-  async delete(id: number) {
+  async delete(id: number): Promise<{ message: string }> {
+    const queryRunner = this.hotelRepo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const deleteResult = await this.hotelRepo.softDelete(id);
+      const deleteResult = await queryRunner.manager.softDelete(Hotel, id);
 
       if (deleteResult.affected === 0) {
-        throw new Error('User not found');
+        throw new NotFoundException('Hotel not found');
       }
 
-      return { message: 'User deleted successfully' };
+      await queryRunner.commitTransaction();
+      return { message: 'Hotel deleted successfully' };
     } catch (error) {
-      console.log(error);
-      throw new Error('Error deleting user');
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException('Error deleting hotel: ' + error.message);
+    } finally {
+      await queryRunner.release();
     }
   }
 }

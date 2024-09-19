@@ -19,9 +19,20 @@ export class Owner1726656397898 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
+            name: 'createdAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
+          {
             name: 'createdBy',
             type: 'int',
             isNullable: true,
+          },
+          {
+            name: 'updatedAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
           {
             name: 'updatedBy',
@@ -31,7 +42,7 @@ export class Owner1726656397898 implements MigrationInterface {
           {
             name: 'UserID',
             type: 'int',
-            isNullable: true, // Assuming owner can be nullable
+            isNullable: false,
           },
         ],
       }),

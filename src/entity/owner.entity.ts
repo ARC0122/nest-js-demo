@@ -20,6 +20,9 @@ export class Owner {
   @Column({ nullable: true })
   updatedBy: number;
 
+  @Column({ nullable: false })
+  UserID: number;
+
   // Relations
   @OneToOne(() => User, (user) => user.owner, {
     eager: false,

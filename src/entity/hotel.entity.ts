@@ -24,6 +24,9 @@ export class Hotel {
   @Column({ nullable: true })
   updatedBy: number;
 
+  @Column({ nullable: false })
+  OwnerID: number;
+
   // Relations
   @ManyToOne(() => Owner, (owner) => owner.hotels, {
     eager: false,

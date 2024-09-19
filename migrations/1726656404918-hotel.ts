@@ -7,7 +7,6 @@ import {
 
 export class Hotel1726656404918 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Create the 'hotels' table
     await queryRunner.createTable(
       new Table({
         name: 'hotels',
@@ -30,9 +29,20 @@ export class Hotel1726656404918 implements MigrationInterface {
             length: '255',
           },
           {
+            name: 'createdAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
+          {
             name: 'createdBy',
             type: 'int',
             isNullable: true,
+          },
+          {
+            name: 'updatedAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
           {
             name: 'updatedBy',
@@ -42,6 +52,7 @@ export class Hotel1726656404918 implements MigrationInterface {
           {
             name: 'OwnerID',
             type: 'int',
+            isNullable: false,
           },
         ],
       }),

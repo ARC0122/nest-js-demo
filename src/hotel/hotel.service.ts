@@ -1,62 +1,90 @@
-import { Injectable } from '@nestjs/common';
-import { HotelDto } from './dto/hotel.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { CreateHotelDto } from './dto/create-hotel.dto';
+import { UpdateHotelDto } from './dto/update-hotel.dto';
+import { Hotel } from 'src/entity/hotel.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { OwnerService } from 'src/owner/owner.service';
 
 @Injectable()
 export class HotelService {
-  private hotels: HotelDto[] = [];
+  constructor(
+    @InjectRepository(Hotel) private hotelRepo: Repository<Hotel>,
+    private ownerService: OwnerService,
+  ) {}
 
-  constructor() {
-    this.hotels = [
-      {
-        id: 1,
-        name: 'Grand Hotel',
-        location: 'New York',
-        rating: 5,
-      },
-      {
-        id: 2,
-        name: 'Sunset Inn',
-        location: 'Los Angeles',
-        rating: 4,
-      },
-      {
-        id: 3,
-        name: 'Ocean Breeze Resort',
-        location: 'Miami',
-        rating: 5,
-      },
-      {
-        id: 4,
-        name: 'Mountain Retreat',
-        location: 'Denver',
-        rating: 4,
-      },
-    ];
-  }
+  async create(createHotelDto: CreateHotelDto): Promise<Hotel> {
+    try {
+      const newHotel = new Hotel();
 
-  findAll(): HotelDto[] {
-    return this.hotels;
-  }
+      Object.assign(newHotel, createHotelDto);
 
-  findOne(id: number): HotelDto {
-    return this.hotels.find((hotel) => hotel.id === id);
-  }
+      if (createHotelDto.OwnerID) {
+        const owner = await this.ownerService.findOne(createHotelDto.OwnerID);
 
-  create(createHotelDto: HotelDto) {
-    this.hotels.push(createHotelDto);
-  }
+        if (!owner) {
+          throw new BadRequestException('Owner not found');
+        }
 
-  update(id: number, updateHotelDto: Partial<HotelDto>) {
-    const hotelIndex = this.hotels.findIndex((hotel) => hotel.id === id);
-    if (hotelIndex !== -1) {
-      this.hotels[hotelIndex] = {
-        ...this.hotels[hotelIndex],
-        ...updateHotelDto,
-      };
+        newHotel.owner = owner;
+      }
+
+      return await this.hotelRepo.save(newHotel);
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
   }
 
-  remove(id: number) {
-    this.hotels = this.hotels.filter((hotel) => hotel.id !== id);
+  async findAll() {
+    const user = await this.hotelRepo.find({ relations: ['owner'] });
+    return user;
+  }
+
+  async findOne(id: number): Promise<Hotel> {
+    const user = await this.hotelRepo.findOne({
+      where: { HotelID: id },
+      relations: ['owner'],
+    });
+    if (!user) throw new NotFoundException('Hotel Not found ');
+
+    return user;
+  }
+
+  async update(id: number, updateHotelDto: UpdateHotelDto) {
+    try {
+      const updateResult = await this.hotelRepo.update(
+        { HotelID: id },
+        updateHotelDto,
+      );
+
+      if (updateResult.affected === 0) {
+        throw new Error('User not found');
+      }
+
+      return await this.hotelRepo.findOne({ where: { HotelID: id } });
+    } catch (error) {
+      console.log(error);
+      throw new Error('Error updating user');
+    }
+  }
+
+  async delete(id: number) {
+    try {
+      const deleteResult = await this.hotelRepo.softDelete(id);
+
+      if (deleteResult.affected === 0) {
+        throw new Error('User not found');
+      }
+
+      return { message: 'User deleted successfully' };
+    } catch (error) {
+      console.log(error);
+      throw new Error('Error deleting user');
+    }
   }
 }

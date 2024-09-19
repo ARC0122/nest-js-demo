@@ -1,14 +1,13 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { HotelService } from './hotel.service';
 import { HotelController } from './hotel.controller';
-import { LogMiddleware } from '../middleware/logs.middleware';
+import { Hotel } from 'src/entity/hotel.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { OwnerModule } from 'src/owner/owner.module';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([Hotel]), OwnerModule],
   controllers: [HotelController],
   providers: [HotelService],
 })
-export class HotelModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LogMiddleware).forRoutes(HotelController);
-  }
-}
+export class HotelModule {}

@@ -7,7 +7,6 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Query,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -19,6 +18,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Post()
+  async create(@Body(ValidationPipe) createUserDto: CreateUserDto) {
+    return await this.userService.create(createUserDto);
+  }
+
   @Get()
   findAll() {
     return this.userService.findAll();
@@ -27,11 +31,6 @@ export class UserController {
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.userService.findOne(+id);
-  }
-
-  @Post()
-  async create(@Body(ValidationPipe) createUserDto: CreateUserDto) {
-    return await this.userService.create(createUserDto);
   }
 
   @Patch(':id')

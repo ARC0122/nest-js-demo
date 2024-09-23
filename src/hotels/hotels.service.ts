@@ -5,16 +5,17 @@ import {
 } from '@nestjs/common';
 import { CreateHotelDto } from './dto/create-hotel.dto';
 import { UpdateHotelDto } from './dto/update-hotel.dto';
-import { Hotel } from 'src/entity/hotel.entity';
+import { OwnersService } from 'src/owners/owners.service';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { OwnerService } from 'src/owner/owner.service';
+import { Hotel } from './entities/hotel.entity';
 
 @Injectable()
-export class HotelService {
+export class HotelsService {
   constructor(
     @InjectRepository(Hotel) private hotelRepo: Repository<Hotel>,
-    private ownerService: OwnerService,
+    private ownersService: OwnersService,
   ) {}
 
   async create(createHotelDto: CreateHotelDto): Promise<Hotel> {
@@ -24,7 +25,7 @@ export class HotelService {
 
     try {
       if (createHotelDto.OwnerID) {
-        await this.ownerService.findOne(createHotelDto.OwnerID);
+        await this.ownersService.findOne(createHotelDto.OwnerID);
       }
 
       const newHotel = this.hotelRepo.create(createHotelDto);
@@ -77,7 +78,7 @@ export class HotelService {
       }
 
       if (updateHotelDto.OwnerID) {
-        const owner = await this.ownerService.findOne(updateHotelDto.OwnerID);
+        const owner = await this.ownersService.findOne(updateHotelDto.OwnerID);
 
         if (!owner) {
           throw new BadRequestException('Owner not found');

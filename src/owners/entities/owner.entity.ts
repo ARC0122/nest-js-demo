@@ -1,3 +1,5 @@
+import { Hotel } from 'src/hotels/entities/hotel.entity';
+import { User } from 'src/users/entities/user.entity';
 import {
   Entity,
   Column,
@@ -6,8 +8,6 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from './user.entity';
-import { Hotel } from './hotel.entity';
 
 @Entity('owners')
 export class Owner {

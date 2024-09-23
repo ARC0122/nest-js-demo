@@ -1,17 +1,17 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './entity/user.entity';
 import { AuthModule } from './auth/auth.module';
-import { OwnerModule } from './owner/owner.module';
-import { HotelModule } from './hotel/hotel.module';
-import { Owner } from './entity/owner.entity';
-import { Hotel } from './entity/hotel.entity';
 import { LogMiddleware } from './middelware/logs.middleware';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './interceptor/transform.interceptor';
+import { UsersModule } from './users/users.module';
+import { OwnersModule } from './owners/owners.module';
+import { HotelsModule } from './hotels/hotels.module';
+import { User } from './users/entities/user.entity';
+import { Hotel } from './hotels/entities/hotel.entity';
+import { Owner } from './owners/entities/owner.entity';
 
 @Module({
   imports: [
@@ -25,10 +25,10 @@ import { TransformInterceptor } from './interceptor/transform.interceptor';
       entities: [User, Owner, Hotel],
       synchronize: false,
     }),
-    UserModule,
     AuthModule,
-    OwnerModule,
-    HotelModule,
+    UsersModule,
+    OwnersModule,
+    HotelsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -6,30 +6,30 @@ import {
   Patch,
   Param,
   Delete,
-  ValidationPipe,
   ParseIntPipe,
+  ValidationPipe,
 } from '@nestjs/common';
-import { OwnerService } from './owner.service';
+import { OwnersService } from './owners.service';
 import { CreateOwnerDto } from './dto/create-owner.dto';
 import { UpdateOwnerDto } from './dto/update-owner.dto';
 
 @Controller('owners')
-export class OwnerController {
-  constructor(private readonly ownerService: OwnerService) {}
+export class OwnersController {
+  constructor(private readonly ownersService: OwnersService) {}
 
   @Post()
   create(@Body(ValidationPipe) createOwnerDto: CreateOwnerDto) {
-    return this.ownerService.create(createOwnerDto);
+    return this.ownersService.create(createOwnerDto);
   }
 
   @Get()
   findAll() {
-    return this.ownerService.findAll();
+    return this.ownersService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.ownerService.findOne(+id);
+    return this.ownersService.findOne(+id);
   }
 
   @Patch(':id')
@@ -37,11 +37,11 @@ export class OwnerController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateOwnerDto: UpdateOwnerDto,
   ) {
-    return this.ownerService.update(id, updateOwnerDto);
+    return this.ownersService.update(id, updateOwnerDto);
   }
 
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.ownerService.delete(+id);
+    return this.ownersService.delete(+id);
   }
 }

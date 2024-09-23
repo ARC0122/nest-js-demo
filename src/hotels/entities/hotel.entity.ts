@@ -1,3 +1,4 @@
+import { Owner } from 'src/owners/entities/owner.entity';
 import {
   Entity,
   Column,
@@ -5,7 +6,6 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Owner } from './owner.entity';
 
 @Entity('hotels')
 export class Hotel {

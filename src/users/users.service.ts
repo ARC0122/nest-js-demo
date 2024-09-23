@@ -1,16 +1,16 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../entity/user.entity';
 import { Repository } from 'typeorm';
+import { User } from './entities/user.entity';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(@InjectRepository(User) private userRepo: Repository<User>) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {

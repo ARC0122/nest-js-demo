@@ -5,16 +5,16 @@ import {
 } from '@nestjs/common';
 import { CreateOwnerDto } from './dto/create-owner.dto';
 import { UpdateOwnerDto } from './dto/update-owner.dto';
-import { Owner } from 'src/entity/owner.entity';
-import { Repository, EntityManager, QueryRunner } from 'typeorm';
+import { Owner } from './entities/owner.entity';
+import { UsersService } from 'src/users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
 
 @Injectable()
-export class OwnerService {
+export class OwnersService {
   constructor(
     @InjectRepository(Owner) private ownerRepo: Repository<Owner>,
-    private userService: UserService,
+    private userService: UsersService,
   ) {}
 
   async create(createOwnerDto: CreateOwnerDto): Promise<Owner> {

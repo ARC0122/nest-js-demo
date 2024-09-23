@@ -8,7 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { IsOptional } from 'class-validator';
-import { Owner } from './owner.entity';
+import { Owner } from 'src/owners/entities/owner.entity';
 
 @Entity('users')
 export class User {

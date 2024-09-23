@@ -1,7 +1,7 @@
+import { Hotel } from 'src/hotels/entities/hotel.entity';
+import { Owner } from 'src/owners/entities/owner.entity';
+import { User } from 'src/users/entities/user.entity';
 import { DataSource } from 'typeorm';
-import { User } from 'src/entity/user.entity';
-import { Owner } from 'src/entity/owner.entity';
-import { Hotel } from 'src/entity/hotel.entity';
 
 export default new DataSource({
   type: 'mysql',
